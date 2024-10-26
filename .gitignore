@@ -1,0 +1,90 @@
+# Qt项目通用的.gitignore配置  
+  
+# 操作系统生成的文件  
+# macOS  
+.DS_Store  
+.AppleDouble  
+.LSOverride  
+  
+# Windows  
+Thumbs.db  
+Desktop.ini  
+  
+# Linux  
+*~  
+  
+# 编译输出文件  
+# 编译输出目录，这些目录通常包含生成的二进制文件和对象文件  
+/build/  
+/out/  
+/bin/  
+/obj/  
+/debug/  
+/release/  
+Debug/  
+Release/  
+*.slo  
+*.lo  
+*.o  
+*.obj  
+*.iobj  
+*.VC.db  
+*.ipch  
+*.pch  
+*.ipdb  
+*.pdb  
+*.ilk  
+*.tlog  
+*.log  
+*.idb  
+Thumbs.db  
+/.vs/  
+/x64/  
+  
+# Qt特有的编译文件  
+*.pro.user  
+*.user  
+*.pro.*.user  
+*.qmake.stash  
+*.qmake.cache  
+*.ui.h  
+*.moc  
+*.rcc  
+qrc_*.cpp  
+ui_*.h  
+  
+# Precompiled Headers  
+*.gch  
+*.pch  
+  
+# Compiled Dynamic libraries  
+*.so  
+*.dylib  
+*.dll  
+  
+# Compiled Static libraries  
+*.lai  
+*.la  
+*.a  
+*.lib  
+  
+# Executables  
+*.exe  
+*.out  
+*.app  
+  
+# 其他临时文件或日志文件  
+*.tmp  
+*.swp  
+*.bak  
+*.pid  
+*.seed  
+*.orig  
+*.autosave  
+  
+# Protobuf生成的文件（如果使用Protobuf）  
+*.pb.h  
+*.pb.cc  
+  
+# 忽略整个目录（如果需要忽略特定目录，可以添加）  
+# my_directory/
