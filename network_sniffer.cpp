@@ -2,25 +2,56 @@
 #include "ui_network_sniffer.h"
 #include <QDebug>
 
-Network_Sniffer::Network_Sniffer(QWidget* parent)
-    : QMainWindow(parent), ui(new Ui::Network_SnifferClass), snifferThread(new SnifferThread(this)) {
+NetworkSniffer::NetworkSniffer(QWidget* parent)
+    : QMainWindow(parent), ui(new Ui::NetworkSnifferClass), snifferThread(new SnifferThread(this)) {
     ui->setupUi(this);
-    connect(snifferThread, &SnifferThread::packetCaptured, this, &Network_Sniffer::displayPacket);
-    connect(ui->startButton, SIGNAL(clicked()), this, SLOT(on_startButton_clicked()));
-    ui->tableWidget->setColumnCount(4);
-    QStringList headers = { "Source IP", "Destination IP", "Protocol", "Length" };
+    // 获取并加载网卡信息
+    QList<QString> networkInterfaces = getAvailableNetworkInterfaces();
+    for (const QString& netInterface : networkInterfaces) {
+        ui->nicSelectBox->addItem(netInterface);
+    }
+    ui->nicSelectBox->setCurrentIndex(-1);
+    connect(snifferThread, &SnifferThread::packetCaptured, this, &NetworkSniffer::displayPacket);
+    connect(ui->startButton, SIGNAL(clicked()), this, SLOT(onStartButtonClicked()));
+    connect(ui->nicSelectBox, QOverload<int>::of(&QComboBox::activated), this, &NetworkSniffer::onNicSelectBoxActivated);
+    ui->tableWidget->setColumnCount(6);
+    QStringList headers = { "Time", "Source", "Destination", "Protocol", "Length", "Info"};
     ui->tableWidget->setHorizontalHeaderLabels(headers);
 }
 
-Network_Sniffer::~Network_Sniffer() {
+NetworkSniffer::~NetworkSniffer() {
     delete ui;
 }
 
-void Network_Sniffer::on_startButton_clicked() {
+QList<QString> NetworkSniffer::getAvailableNetworkInterfaces() {
+    pcap_if_t* alldevs;
+    pcap_if_t* device;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    QList<QString> interfaces;
+
+    // 获取可用设备列表
+    if (pcap_findalldevs(&alldevs, errbuf) == -1) {
+        qDebug() << "Error finding devices: " << errbuf;
+        return interfaces;  // 返回空列表
+    }
+
+    // 将设备描述添加到列表中
+    for (device = alldevs; device; device = device->next) {
+        QString description = device->description ? device->description : "No description";
+        interfaces.append(description);
+    }
+
+    // 释放设备列表
+    pcap_freealldevs(alldevs);
+
+    return interfaces;
+}
+
+void NetworkSniffer::onStartButtonClicked() {
     QString text = ui->startButton->text();
     if (text == "Start") {
         ui->startButton->setText("Stop");
-        snifferThread->startSniffing("eth0");  // 开始嗅探
+        snifferThread->startSniffing(ui->nicSelectBox->currentIndex());  // 开始嗅探
     }
     else {
         ui->startButton->setText("Start");
@@ -28,15 +59,18 @@ void Network_Sniffer::on_startButton_clicked() {
     }
 }
 
-void Network_Sniffer::on_stopButton_clicked() {
-    snifferThread->stopSniffing();
+void NetworkSniffer::onNicSelectBoxActivated() {
+    // 选择网卡
+
 }
 
-void Network_Sniffer::displayPacket(const QString& srcIP, const QString& destIP, const QString& protocol, int length) {
+void NetworkSniffer::displayPacket(int time, const QString& src, const QString& dest, const QString& protocol, int length, const QString& Info) {
     int row = ui->tableWidget->rowCount();
     ui->tableWidget->insertRow(row);
-    ui->tableWidget->setItem(row, 0, new QTableWidgetItem(srcIP));
-    ui->tableWidget->setItem(row, 1, new QTableWidgetItem(destIP));
-    ui->tableWidget->setItem(row, 2, new QTableWidgetItem(protocol));
-    ui->tableWidget->setItem(row, 3, new QTableWidgetItem(QString::number(length)));
+    ui->tableWidget->setItem(row, 0, new QTableWidgetItem(QString::number(time)));
+    ui->tableWidget->setItem(row, 1, new QTableWidgetItem(src));
+    ui->tableWidget->setItem(row, 2, new QTableWidgetItem(dest));
+    ui->tableWidget->setItem(row, 3, new QTableWidgetItem(protocol));
+    ui->tableWidget->setItem(row, 4, new QTableWidgetItem(QString::number(length)));
+    ui->tableWidget->setItem(row, 5, new QTableWidgetItem(Info));
 }

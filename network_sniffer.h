@@ -9,42 +9,44 @@
 #include <ws2tcpip.h>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class Network_SnifferClass; }
+namespace Ui { class NetworkSnifferClass; }
 QT_END_NAMESPACE
 
 class SnifferThread : public QThread {
     Q_OBJECT
 public:
     explicit SnifferThread(QObject* parent = nullptr);
-    void startSniffing(const QString& networkInterface);
+    void startSniffing(const int netInterfaceIndex);
     void stopSniffing();
 
 signals:
-    void packetCaptured(const QString& srcIP, const QString& destIP, const QString& protocol, int length);
+    void packetCaptured(int time, const QString& src, const QString& dest, const QString& protocol, int length, const QString& Info);
 
 protected:
     void run() override;
 
 private:
     pcap_t* handle;
+    int _netInterfaceIndex;
     bool sniffing;
     char errbuf[PCAP_ERRBUF_SIZE] = { 0 };
 };
 
-class Network_Sniffer : public QMainWindow {
+class NetworkSniffer : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit Network_Sniffer(QWidget* parent = nullptr);
-    ~Network_Sniffer();
+    explicit NetworkSniffer(QWidget* parent = nullptr);
+    QList<QString> getAvailableNetworkInterfaces();
+    ~NetworkSniffer();
 
 private slots:
-    void on_startButton_clicked();
-    void on_stopButton_clicked();
-    void displayPacket(const QString& srcIP, const QString& destIP, const QString& protocol, int length);
+    void onStartButtonClicked();
+    void onNicSelectBoxActivated();
+    void displayPacket(int time, const QString& src, const QString& dest, const QString& protocol, int length, const QString& Info);
 
 private:
-    Ui::Network_SnifferClass* ui;
+    Ui::NetworkSnifferClass* ui;
     SnifferThread* snifferThread;
 };
 

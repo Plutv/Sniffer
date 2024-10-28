@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Network_SnifferClass</class>
- <widget class="QMainWindow" name="Network_SnifferClass">
+ <class>NetworkSnifferClass</class>
+ <widget class="QMainWindow" name="NetworkSnifferClass">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>755</width>
-    <height>731</height>
+    <width>1207</width>
+    <height>974</height>
    </rect>
   </property>
   <property name="windowTitle">
