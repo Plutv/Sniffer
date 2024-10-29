@@ -13,9 +13,8 @@ NetworkSniffer::NetworkSniffer(QWidget* parent)
     ui->nicSelectBox->setCurrentIndex(-1);
     connect(snifferThread, &SnifferThread::packetCaptured, this, &NetworkSniffer::displayPacket);
     connect(ui->startButton, SIGNAL(clicked()), this, SLOT(onStartButtonClicked()));
-    connect(ui->nicSelectBox, QOverload<int>::of(&QComboBox::activated), this, &NetworkSniffer::onNicSelectBoxActivated);
-    ui->tableWidget->setColumnCount(6);
-    QStringList headers = { "Time", "Source", "Destination", "Protocol", "Length", "Info"};
+    ui->tableWidget->setColumnCount(7);
+    QStringList headers = { "No.", "Time", "Source", "Destination", "Protocol", "Length", "Info"};
     ui->tableWidget->setHorizontalHeaderLabels(headers);
 }
 
@@ -59,18 +58,16 @@ void NetworkSniffer::onStartButtonClicked() {
     }
 }
 
-void NetworkSniffer::onNicSelectBoxActivated() {
-    // Ñ¡ÔñÍø¿¨
-
-}
-
-void NetworkSniffer::displayPacket(int time, const QString& src, const QString& dest, const QString& protocol, int length, const QString& Info) {
+void NetworkSniffer::displayPacket(const int seq, const double time, const QString& src, const QString& dest, const QString& protocol, const int length, const QString& Info) {
     int row = ui->tableWidget->rowCount();
     ui->tableWidget->insertRow(row);
-    ui->tableWidget->setItem(row, 0, new QTableWidgetItem(QString::number(time)));
-    ui->tableWidget->setItem(row, 1, new QTableWidgetItem(src));
-    ui->tableWidget->setItem(row, 2, new QTableWidgetItem(dest));
-    ui->tableWidget->setItem(row, 3, new QTableWidgetItem(protocol));
-    ui->tableWidget->setItem(row, 4, new QTableWidgetItem(QString::number(length)));
-    ui->tableWidget->setItem(row, 5, new QTableWidgetItem(Info));
+    ui->tableWidget->setItem(row, 0, new QTableWidgetItem(QString::number(seq)));
+    ui->tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(time)));
+    ui->tableWidget->setItem(row, 2, new QTableWidgetItem(src));
+    ui->tableWidget->setItem(row, 3, new QTableWidgetItem(dest));
+    ui->tableWidget->setItem(row, 4, new QTableWidgetItem(protocol));
+    ui->tableWidget->setItem(row, 5, new QTableWidgetItem(QString::number(length)));
+    ui->tableWidget->setItem(row, 6, new QTableWidgetItem(Info));
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
+
 }

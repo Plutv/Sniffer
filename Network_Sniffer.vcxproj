@@ -104,6 +104,9 @@
     <None Include="Network_Sniffer.ico" />
     <ResourceCompile Include="Network_Sniffer.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="protocol.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
     <Import Project="$(QtMsBuild)\qt.targets" />
