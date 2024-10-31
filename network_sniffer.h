@@ -19,8 +19,11 @@ class SnifferThread : public QThread {
     Q_OBJECT
 public:
     explicit SnifferThread(QObject* parent = nullptr);
+    ~SnifferThread();
     void startSniffing(const int netInterfaceIndex);
     void stopSniffing();
+    QString formatMacAddress(const u_char* mac);
+    Packet* getSelectedPacket(int index);
 
 signals:
     void packetCaptured(const int seq,const double time, const QString& src, const QString& dest, const QString& protocol, const int length, const QString& Info);
@@ -29,17 +32,17 @@ protected:
     void run() override;
 
 private:
-    void packet_handler(const struct pcap_pkthdr* header, const u_char* packet);
-    QString formatMacAddress(const u_char* mac);
-    void handleIP(const struct iphdr* ip, const u_char* packet, const struct pcap_pkthdr* header);
-    void handleIPv6(const struct iphdr6* ip6, const u_char* packet, const struct pcap_pkthdr* header);
-    void handleARP(const struct arphdr* arp, const struct pcap_pkthdr* header);
-    void handleTCP(const struct iphdr* ip, const u_char* packet, const struct pcap_pkthdr* header);
-    void handleICMP(const struct iphdr* ip, const u_char* packet, const struct pcap_pkthdr* header);
-    void handleUDP(const struct iphdr* ip, const u_char* packet, const struct pcap_pkthdr* header);
-    void handleTCP6(const struct iphdr6* ip6, const u_char* packet, const struct pcap_pkthdr* header);
-    void handleICMP6(const struct iphdr6* ip6, const u_char* packet, const struct pcap_pkthdr* header);
-    void handleUDP6(const struct iphdr6* ip6, const u_char* packet, const struct pcap_pkthdr* header);
+    void packet_handler(const struct pcap_pkthdr* header, const u_char* data);
+    void appendPacket(); // 添加新捕获的报文
+    void senderSignal(); // 发送捕捉报文的信号
+    
+    void handleIP();
+    void handleIPv6();
+    void handleARP();
+    void handleTCP();
+    void handleUDP();
+    void handleICMP();
+    void handleICMP6();
 
     pcap_t* handle;
     int _netInterfaceIndex;
@@ -57,9 +60,12 @@ public:
     explicit NetworkSniffer(QWidget* parent = nullptr);
     QList<QString> getAvailableNetworkInterfaces();
     ~NetworkSniffer();
+    void displayPacketDetails();
+    void displayPacketHex();
 
 private slots:
     void onStartButtonClicked();
+    void onTableSelectionChanged();
     void displayPacket(const int seq, const double time, const QString& src, const QString& dest, const QString& protocol, const int length, const QString& Info);
 
 private:

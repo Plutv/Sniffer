@@ -12,7 +12,8 @@ NetworkSniffer::NetworkSniffer(QWidget* parent)
     }
     ui->nicSelectBox->setCurrentIndex(-1);
     connect(snifferThread, &SnifferThread::packetCaptured, this, &NetworkSniffer::displayPacket);
-    connect(ui->startButton, SIGNAL(clicked()), this, SLOT(onStartButtonClicked()));
+    connect(ui->startButton, &QPushButton::clicked, this, &NetworkSniffer::onStartButtonClicked);
+    connect(ui->tableWidget, &QTableWidget::itemSelectionChanged, this, &NetworkSniffer::onTableSelectionChanged);
     ui->tableWidget->setColumnCount(7);
     QStringList headers = { "No.", "Time", "Source", "Destination", "Protocol", "Length", "Info"};
     ui->tableWidget->setHorizontalHeaderLabels(headers);
@@ -69,5 +70,51 @@ void NetworkSniffer::displayPacket(const int seq, const double time, const QStri
     ui->tableWidget->setItem(row, 5, new QTableWidgetItem(QString::number(length)));
     ui->tableWidget->setItem(row, 6, new QTableWidgetItem(Info));
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
+}
 
+void NetworkSniffer::displayPacketDetails() {
+    QTreeWidget* detailsTree = ui->treeWidget;
+    detailsTree->clear();
+    int index = ui->tableWidget->currentIndex().row();
+    Packet* packet = snifferThread->getSelectedPacket(index);
+    // 链路层信息
+    QTreeWidgetItem* linkLayer = new QTreeWidgetItem(detailsTree, QStringList() << "Link Layer");
+    linkLayer->addChild(new QTreeWidgetItem(linkLayer, QStringList() << "Source MAC: " + snifferThread->formatMacAddress(packet->ethh->src)));
+    linkLayer->addChild(new QTreeWidgetItem(linkLayer, QStringList() << "Destination MAC: " + snifferThread->formatMacAddress(packet->ethh->dest)));
+
+    // 网络层信息
+    if (packet->iph) {
+        QTreeWidgetItem* networkLayer = new QTreeWidgetItem(detailsTree, QStringList() << "Network Layer (IPv4)");
+        networkLayer->addChild(new QTreeWidgetItem(networkLayer, QStringList() << "Source IP: " + QString(inet_ntoa(packet->iph->saddr))));
+        networkLayer->addChild(new QTreeWidgetItem(networkLayer, QStringList() << "Destination IP: " + QString(inet_ntoa(packet->iph->daddr))));
+    }
+
+    // 传输层信息
+    if (packet->tcph) {
+        QTreeWidgetItem* transportLayer = new QTreeWidgetItem(detailsTree, QStringList() << "Transport Layer (TCP)");
+        transportLayer->addChild(new QTreeWidgetItem(transportLayer, QStringList() << "Source Port: " + QString::number(ntohs(packet->tcph->src_port))));
+        transportLayer->addChild(new QTreeWidgetItem(transportLayer, QStringList() << "Destination Port: " + QString::number(ntohs(packet->tcph->dst_port))));
+    }
+
+    detailsTree->expandAll();
+}
+
+void NetworkSniffer::displayPacketHex() {
+    QTextEdit* hexView = ui->textEdit;
+    int index = ui->tableWidget->currentIndex().row();
+    Packet* packet = snifferThread->getSelectedPacket(index);
+    hexView->clear();
+    QString hexContent;
+    u_char* data = (u_char*)packet->ethh;
+    for (int i = 0; i < packet->length; ++i) {
+        hexContent += QString("%1 ").arg(data[i], 2, 16, QLatin1Char('0')).toUpper();
+        if ((i + 1) % 16 == 0) hexContent += "\n";
+    }
+
+    hexView->setPlainText(hexContent);
+}
+
+void NetworkSniffer::onTableSelectionChanged() {
+    displayPacketDetails();
+    displayPacketHex();
 }
