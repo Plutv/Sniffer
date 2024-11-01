@@ -21,33 +21,32 @@ public:
     explicit SnifferThread(QObject* parent = nullptr);
     ~SnifferThread();
     void startSniffing(const int netInterfaceIndex);
+    void clearPackets();
     void stopSniffing();
     QString formatMacAddress(const u_char* mac);
     Packet* getSelectedPacket(int index);
-
+    QString formatTCPFlags(const tcphdr* tcpHeader);
+    QString bpfFilter;
+    bool bpfIsValid(QString exp);
+    pcap_t* handle;
 signals:
-    void packetCaptured(const int seq,const double time, const QString& src, const QString& dest, const QString& protocol, const int length, const QString& Info);
+    void packetCaptured(const int seq,const QString time, const QString& src, const QString& dest, const QString& protocol, const int length, const QString& Info);
 
 protected:
     void run() override;
 
 private:
     void packet_handler(const struct pcap_pkthdr* header, const u_char* data);
-    void appendPacket(); // 添加新捕获的报文
-    void senderSignal(); // 发送捕捉报文的信号
-    
-    void handleIP();
-    void handleIPv6();
-    void handleARP();
-    void handleTCP();
-    void handleUDP();
-    void handleICMP();
-    void handleICMP6();
+    void appendPacket(Packet* _packet); // 添加捕获的报文
+    void handleIP(Packet* _packet);
+    void handleIPv6(Packet* _packet);
+    void handleARP(Packet* _packet);
+    void handleTCP(Packet* _packet);
+    void handleUDP(Packet* _packet);
+    void handleICMP(Packet* _packet);
+    void handleICMP6(Packet* _packet);
 
-    pcap_t* handle;
     int _netInterfaceIndex;
-    int index = 0;        // 当前包索引
-    struct timeval first_timestamp;
     bool sniffing;
     char errbuf[PCAP_ERRBUF_SIZE] = { 0 };
     QList<Packet*> packets; // 存储捕获的数据包信息
@@ -65,8 +64,12 @@ public:
 
 private slots:
     void onStartButtonClicked();
+    void onApplyButtonClicked();
+    void onClearButtonClicked();
+    void onResetButtonClicked();
+    void onSelectedNicChanged();
     void onTableSelectionChanged();
-    void displayPacket(const int seq, const double time, const QString& src, const QString& dest, const QString& protocol, const int length, const QString& Info);
+    void displayPacket(const int seq, const QString time, const QString& src, const QString& dest, const QString& protocol, const int length, const QString& Info);
 
 private:
     Ui::NetworkSnifferClass* ui;
