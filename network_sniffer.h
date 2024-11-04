@@ -26,6 +26,7 @@ public:
     QString formatMacAddress(const u_char* mac);
     Packet* getSelectedPacket(int index);
     QString formatTCPFlags(const tcphdr* tcpHeader);
+    QString parseDNSName(const u_char* data, int maxLength);
     QString bpfFilter;
     bool bpfIsValid(QString exp);
     pcap_t* handle;

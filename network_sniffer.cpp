@@ -306,7 +306,7 @@ void NetworkSniffer::displayPacketDetails() {
         applicationLayer->addChild(new QTreeWidgetItem(applicationLayer, QStringList() << "Transaction ID: " + transactionId));
 
         // Flags
-        applicationLayer->addChild(new QTreeWidgetItem(applicationLayer, QStringList() << "Flags: 0x" + dns_header->flagsToHexString()));
+        applicationLayer->addChild(new QTreeWidgetItem(applicationLayer, QStringList() << "Flags: " + dns_header->flagsToHexString()));
 
         // Questions, Answer RRs, Authority RRs, Additional RRs
         applicationLayer->addChild(new QTreeWidgetItem(applicationLayer, QStringList() << "Questions: " + QString::number(ntohs(dns_header->qdcount))));

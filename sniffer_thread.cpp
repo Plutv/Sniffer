@@ -394,10 +394,31 @@ void SnifferThread::handleUDP(Packet* _packet) {
         _packet->data_len = dns_length;
         _packet->dns_data = dns_data;
         if (dns_length > 0) {
-            // 在这里解析 DNS 数据包内容并修改 _packet->info
-            _packet->info = QString("DNS Data (Length: %1): ").arg(dns_length);
-            _packet->info += QString::fromUtf8(reinterpret_cast<const char*>(dns_data), dns_length);
+            QString domainName = parseDNSName(dns_data, dns_length);
+            _packet->info = QString("DNS Query: %1 (Length: %2)").arg(domainName).arg(dns_length);
         }
     }
     appendPacket(_packet);
+}
+
+// DNS 名称解析函数
+QString SnifferThread::parseDNSName(const u_char* data, int maxLength) {
+    QString domainName;
+    int offset = 12;
+    bool firstLabel = true;
+
+    // 逐段读取域名标签
+    while (offset < maxLength) {
+        int labelLength = data[offset++];
+        if (labelLength == 0) break;  // 标签以0结束
+
+        // 使用 '.' 分隔各标签
+        if (!firstLabel) domainName += ".";
+        firstLabel = false;
+
+        // 添加标签内容
+        domainName += QString::fromUtf8(reinterpret_cast<const char*>(data + offset), labelLength);
+        offset += labelLength;
+    }
+    return domainName;
 }
